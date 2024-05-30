@@ -35,7 +35,7 @@
 
 ```python
 import os
-from WordDiscovery import WordDiscoveryNLP, load_vocabulary, load_txt, load_stopwords, DATA_DIR
+from WordDiscoveryNLP import WordDiscoveryNLP, load_vocabulary, load_txt, load_stopwords, DATA_DIR
 
 if __name__ == '__main__':
     corpus = load_txt(os.path.join(DATA_DIR, "demo.txt"), transform=lambda t: t.strip())
