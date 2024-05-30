@@ -106,7 +106,7 @@ class WordDiscoveryNLP:
 
     def load_stopwords(self, stopwords: Optional[Sequence[str]] = None) -> None:
         if stopwords is None:
-            stopwords = load_stopwords('./data/stopword.txt')
+            stopwords = load_stopwords(os.path.join(DATA_DIR, "stopword.txt"))
         self.stopwords = set(stopwords)
 
     def export_new_words_to_file(self, filepath: str) -> None:
