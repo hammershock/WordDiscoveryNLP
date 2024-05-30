@@ -5,29 +5,29 @@
 ## 数学原理
 
 1. **点互信息 (PMI)**：
-   点互信息用于衡量两个词同时出现的概率与它们各自独立出现的概率之间的关系，公式如下：
+    点互信息用于衡量两个词同时出现的概率与它们各自独立出现的概率之间的关系，公式如下：
 
-   \[
-   PMI(word1, word2) = \log\frac{P(word1, word2)}{P(word1) \times P(word2)}
-   \]
+    \[
+    PMI(word1, word2) = \log\frac{P(word1, word2)}{P(word1) \times P(word2)}
+    \]
 
-   其中，\( P(word1, word2) \) 是两个词同时出现的概率，\( P(word1) \) 和 \( P(word2) \) 分别是两个词各自出现的概率。
+    其中，`P(word1, word2)` 是两个词同时出现的概率，`P(word1)` 和 `P(word2)` 分别是两个词各自出现的概率。
 
 2. **熵 (Entropy)**：
-   熵用于衡量某个词左右邻居的分布情况，公式如下：
+    熵用于衡量某个词左右邻居的分布情况，公式如下：
 
-   \[
-   H(X) = -\sum_{i} P(x_i) \log P(x_i)
-   \]
+    \[
+    H(X) = -\sum_{i} P(x_i) \log P(x_i)
+    \]
 
-   其中，\( P(x_i) \) 是某个词左右邻居 \( x_i \) 出现的概率。
+    其中，`P(x_i)` 是某个词左右邻居 `x_i` 出现的概率。
 
 3. **综合得分**：
-   通过结合PMI和左右熵，计算候选词对的综合得分，公式如下：
+    通过结合PMI和左右熵，计算候选词对的综合得分，公式如下：
 
-   \[
-   score(word1, word2) = PMI(word1, word2) + \min(H(left_neighbors(word2)), H(right_neighbors(word1)))
-   \]
+    \[
+    score(word1, word2) = PMI(word1, word2) + \min(H(left_neighbors(word2)), H(right_neighbors(word1)))
+    \]
 
 ## 示例代码
 
