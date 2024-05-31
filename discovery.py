@@ -62,12 +62,15 @@ class ScoreResult(TypedDict):
 
 
 class WordDiscoveryNLP:
-    def __init__(self) -> None:
+    def __init__(self, min_pmi=5.0, min_pairs=10) -> None:
         self.word_counts = defaultdict(int)
         self.pair_counts = defaultdict(int)
         self.left_neighbors = defaultdict(Counter)
         self.right_neighbors = defaultdict(Counter)
         self.stopwords = set()
+
+        self.min_pmi = min_pmi
+        self.min_pairs = min_pairs
 
     def add_text(self, text: str) -> None:
         tokens = tokenize(text, stopwords=self.stopwords)
@@ -100,7 +103,7 @@ class WordDiscoveryNLP:
             if self.word_counts[word1] == 0 or self.word_counts[word2] == 0:
                 continue
 
-            if pair_count < 3:
+            if pair_count < self.min_pairs:
                 continue
 
             left_count = self.word_counts[word1]
@@ -110,8 +113,16 @@ class WordDiscoveryNLP:
             p_pair = pair_count / total_words
             eps = 1e-5
             pmi = math.log(p_pair / (p_word1 * p_word2 * (1 - p_pair / p_word1 + eps) * (1 - p_pair / p_word1 + eps)))
-            left_entropy = self.calculate_entropy(self.left_neighbors[word2])
-            right_entropy = self.calculate_entropy(self.right_neighbors[word1])
+
+            if pmi < self.min_pmi:
+                continue
+
+            left_neighbors = self.left_neighbors[word2]
+            right_neighbors = self.right_neighbors[word1]
+
+            left_entropy = self.calculate_entropy(left_neighbors)
+            right_entropy = self.calculate_entropy(right_neighbors)
+
             score = pmi + min(left_entropy, right_entropy)
             score_result = {"score": score, "pmi": pmi, "pair_count": pair_count, "left_entropy": left_entropy,
                             "right_entropy": right_entropy, "left_count": left_count, "right_count": right_count,
@@ -131,10 +142,9 @@ class WordDiscoveryNLP:
         with open(filepath, 'w', encoding='utf-8') as f:
             scores = self.score()
             for word, score in scores.items():
-                counts = f"{score['left_count']:.2f} {score['right_count']:.2f} {score['pair_count']:.2f}"
+                counts = f"{score['pair_count']} {score['left_count']} {score['right_count']}"
                 entropies = f"{score['pmi']:.2f} {score['left_entropy']:.2f} {score['right_entropy']:.2f}"
-                ps = f"{score['p_left']:.2f} {score['p_right']:.2f} {score['p_pair']}:.2f"
-                f.write(f"{word}\t{score['score']}\tcounts: {counts}\tentropy: {entropies}\tp: {ps}\n")
+                f.write(f"{word}\t{score['score']}\tcounts: {counts}\tentropy: {entropies}\n")
                 f.flush()
 
 
