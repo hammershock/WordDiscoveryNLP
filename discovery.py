@@ -78,11 +78,11 @@ class WordDiscoveryNLP:
         entropy = -sum((count / total) * math.log(count / total) for count in neighbors.values())
         return entropy
 
-    def score(self) -> OrderedDict:
+    def score(self, f=None) -> OrderedDict:
         scores = {}
         total_words = sum(self.word_counts.values())
 
-        for (word1, word2), pair_count in self.pair_counts.items():
+        for (word1, word2), pair_count in tqdm(self.pair_counts.items(), "scoring pairs"):
             if self.word_counts[word1] == 0 or self.word_counts[word2] == 0:
                 continue
 
@@ -97,7 +97,8 @@ class WordDiscoveryNLP:
             left_entropy = self.calculate_entropy(self.left_neighbors[word2])
             right_entropy = self.calculate_entropy(self.right_neighbors[word1])
             score = pmi + min(left_entropy, right_entropy)
-            # print(f'pair: {(word1, word2)}, pmi: {pmi:.4f}, pair_count: {pair_count}, left_entropy: {left_entropy:.4f}, right_entropy: {right_entropy:.4f}')
+            if f is not None:
+                f.write(f'{(word1, word2)}, pmi: {pmi:.4f}, pair_count: {pair_count}, left_entropy: {left_entropy:.4f}, right_entropy: {right_entropy:.4f}')
             scores[(word1, word2)] = score
 
         # Sort scores and return an OrderedDict
@@ -110,10 +111,8 @@ class WordDiscoveryNLP:
         self.stopwords = set(stopwords)
 
     def export_new_words_to_file(self, filepath: str) -> None:
-        scores = self.score()
         with open(filepath, 'w', encoding='utf-8') as f:
-            for pair, score in scores.items():
-                f.write(f'{pair[0]} {pair[1]}\t{score}\n')
+            self.score(f)
 
 
 if __name__ == '__main__':
