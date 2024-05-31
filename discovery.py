@@ -67,7 +67,7 @@ class WordDiscoveryNLP:
             self.left_neighbors[trigram[1]][trigram[0]] += 1
             self.right_neighbors[trigram[1]][trigram[2]] += 1
 
-    def add_vocabulary_dict(self, vocabulary: Optional[Dict[str, int]] = None) -> None:
+    def load_vocabulary_dict(self, vocabulary: Optional[Dict[str, int]] = None) -> None:
         if vocabulary is None:
             vocabulary = load_vocabulary(os.path.join(DATA_DIR, 'dict.txt'))
         for word, count in vocabulary.items():
@@ -98,7 +98,7 @@ class WordDiscoveryNLP:
             right_entropy = self.calculate_entropy(self.right_neighbors[word1])
             score = pmi + min(left_entropy, right_entropy)
             if f is not None:
-                f.write(f'{(word1, word2)}, pmi: {pmi:.4f}, pair_count: {pair_count}, left_entropy: {left_entropy:.4f}, right_entropy: {right_entropy:.4f}')
+                f.write(f'{(word1, word2)}, pmi: {pmi:.4f}, pair_count: {pair_count}, left_entropy: {left_entropy:.4f}, right_entropy: {right_entropy:.4f}\n')
             scores[(word1, word2)] = score
 
         # Sort scores and return an OrderedDict
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     corpus = load_txt(os.path.join(DATA_DIR, "demo.txt"), transform=lambda t: t.strip())
 
     model = WordDiscoveryNLP()
-    model.add_vocabulary_dict()
+    model.load_vocabulary_dict()
     model.load_stopwords()
 
     for text in corpus:
