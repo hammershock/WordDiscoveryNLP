@@ -1,10 +1,11 @@
 import math
 import os
 from collections import defaultdict, OrderedDict
-from typing import Sequence, Dict, List, Iterator, Tuple, Counter, Optional, Set
+from typing import OrderedDict as OrderedDictType
+from typing import Sequence, Dict, List, Iterator, Tuple, Counter, Optional, Set, TypedDict
+
 import jieba
 from tqdm import tqdm
-
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
@@ -47,6 +48,19 @@ def generate_n_grams(tokens: Sequence[str], n: int) -> Iterator[Tuple[str, ...]]
     return (tuple(tokens[i:i + n]) for i in range(len(tokens) - n + 1))
 
 
+class ScoreResult(TypedDict):
+    score: float
+    pmi: float
+    pair_count: int
+    left_count: int
+    right_count: int
+    left_entropy: float
+    right_entropy: float
+    p_left: float
+    p_right: float
+    p_pair: float
+
+
 class WordDiscoveryNLP:
     def __init__(self) -> None:
         self.word_counts = defaultdict(int)
@@ -78,7 +92,7 @@ class WordDiscoveryNLP:
         entropy = -sum((count / total) * math.log(count / total) for count in neighbors.values())
         return entropy
 
-    def score(self, f=None) -> OrderedDict:
+    def score(self) -> OrderedDictType[Tuple[str, str], ScoreResult]:
         scores = {}
         total_words = sum(self.word_counts.values())
 
@@ -89,20 +103,23 @@ class WordDiscoveryNLP:
             if pair_count < 3:
                 continue
 
-            p_word1 = self.word_counts[word1] / total_words
-            p_word2 = self.word_counts[word2] / total_words
+            left_count = self.word_counts[word1]
+            right_count = self.word_counts[word2]
+            p_word1 = left_count / total_words
+            p_word2 = right_count / total_words
             p_pair = pair_count / total_words
             eps = 1e-5
             pmi = math.log(p_pair / (p_word1 * p_word2 * (1 - p_pair / p_word1 + eps) * (1 - p_pair / p_word1 + eps)))
             left_entropy = self.calculate_entropy(self.left_neighbors[word2])
             right_entropy = self.calculate_entropy(self.right_neighbors[word1])
             score = pmi + min(left_entropy, right_entropy)
-            if f is not None:
-                f.write(f'{(word1, word2)}, pmi: {pmi:.4f}, pair_count: {pair_count}, left_entropy: {left_entropy:.4f}, right_entropy: {right_entropy:.4f}\n')
-            scores[(word1, word2)] = score
+            score_result = {"score": score, "pmi": pmi, "pair_count": pair_count, "left_entropy": left_entropy,
+                            "right_entropy": right_entropy, "left_count": left_count, "right_count": right_count,
+                            "p_left": p_word1, "p_right": p_word2, "p_pair": p_pair}
+            scores[(word1, word2)] = score_result
 
         # Sort scores and return an OrderedDict
-        sorted_scores = OrderedDict(sorted(scores.items(), key=lambda item: item[1], reverse=True))
+        sorted_scores = OrderedDict(sorted(scores.items(), key=lambda item: item[1]['score'], reverse=True))
         return sorted_scores
 
     def load_stopwords(self, stopwords: Optional[Sequence[str]] = None) -> None:
@@ -112,7 +129,13 @@ class WordDiscoveryNLP:
 
     def export_new_words_to_file(self, filepath: str) -> None:
         with open(filepath, 'w', encoding='utf-8') as f:
-            self.score(f)
+            scores = self.score()
+            for word, score in scores.items():
+                counts = f"{score['left_count']:.2f} {score['right_count']:.2f} {score['pair_count']:.2f}"
+                entropies = f"{score['pmi']:.2f} {score['left_entropy']:.2f} {score['right_entropy']:.2f}"
+                ps = f"{score['p_left']:.2f} {score['p_right']:.2f} {score['p_pair']}:.2f"
+                f.write(f"{word}\t{score['score']}\tcounts: {counts}\tentropy: {entropies}\tp: {ps}\n")
+                f.flush()
 
 
 if __name__ == '__main__':
