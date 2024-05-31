@@ -10,9 +10,9 @@ from tqdm import tqdm
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 
 
-def load_txt(filepath, transform=lambda x: x) -> List[str]:
+def load_txt(filepath, transform=lambda x: x, filter_func=lambda line: True) -> List[str]:
     with open(filepath, 'r') as f:
-        return [transform(line) for line in f.readlines() if line]
+        return [transform(line) for line in f.readlines() if filter_func(line)]
 
 
 def load_vocabulary(filepath) -> Dict[str, int]:
