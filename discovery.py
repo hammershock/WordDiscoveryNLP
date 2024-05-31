@@ -151,14 +151,15 @@ class WordDiscoveryNLP:
                 f.write(f"{'_'.join(word)}\t{score['score']}\tcounts: {counts}\tentropy: {entropies}\n")
                 f.flush()
 
-    def export_vocabulary(self, filepath: str) -> None:
+    def export_vocabulary(self, filepath: str, min_counts=1) -> None:
         if os.path.exists(filepath):
             raise FileExistsError
 
         sorted_words = sorted(self.word_counts.items(), key=lambda item: item[1], reverse=True)
         with open(filepath, 'w', encoding='utf-8') as f:
             for word, count in sorted_words:
-                f.write(f"{word}\t{count}\n")
+                if count >= min_counts:
+                    f.write(f"{word}\t{count}\n")
 
 
 if __name__ == '__main__':
