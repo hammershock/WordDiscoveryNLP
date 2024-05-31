@@ -154,8 +154,10 @@ class WordDiscoveryNLP:
     def export_vocabulary(self, filepath: str) -> None:
         if os.path.exists(filepath):
             raise FileExistsError
+
+        sorted_words = sorted(self.word_counts.items(), key=lambda item: item[1], reverse=True)
         with open(filepath, 'w', encoding='utf-8') as f:
-            for word, count in self.word_counts.items():
+            for word, count in sorted_words:
                 f.write(f"{word}\t{count}\n")
 
 
