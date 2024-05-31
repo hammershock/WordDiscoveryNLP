@@ -73,7 +73,9 @@ class WordDiscoveryNLP:
         self.min_pairs = min_pairs
 
     def add_text(self, text: str) -> None:
+        # use jieba to cut the text into pieces...
         tokens = tokenize(text, stopwords=self.stopwords)
+
         for unigram in generate_n_grams(tokens, n=1):
             self.word_counts[unigram[0]] += 1
 
@@ -139,6 +141,8 @@ class WordDiscoveryNLP:
         self.stopwords = set(stopwords)
 
     def export_new_words_to_file(self, filepath: str) -> None:
+        if os.path.exists(filepath):
+            raise FileExistsError
         with open(filepath, 'w', encoding='utf-8') as f:
             scores = self.score()
             for word, score in scores.items():
@@ -146,6 +150,13 @@ class WordDiscoveryNLP:
                 entropies = f"{score['pmi']:.2f} {score['left_entropy']:.2f} {score['right_entropy']:.2f}"
                 f.write(f"{'_'.join(word)}\t{score['score']}\tcounts: {counts}\tentropy: {entropies}\n")
                 f.flush()
+
+    def export_vocabulary(self, filepath: str) -> None:
+        if os.path.exists(filepath):
+            raise FileExistsError
+        with open(filepath, 'w', encoding='utf-8') as f:
+            for word, count in self.word_counts.items():
+                f.write(f"{word}\t{count}\n")
 
 
 if __name__ == '__main__':
