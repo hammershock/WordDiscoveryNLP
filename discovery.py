@@ -144,7 +144,7 @@ class WordDiscoveryNLP:
             for word, score in scores.items():
                 counts = f"{score['pair_count']} {score['left_count']} {score['right_count']}"
                 entropies = f"{score['pmi']:.2f} {score['left_entropy']:.2f} {score['right_entropy']:.2f}"
-                f.write(f"{word}\t{score['score']}\tcounts: {counts}\tentropy: {entropies}\n")
+                f.write(f"{'_'.join(word)}\t{score['score']}\tcounts: {counts}\tentropy: {entropies}\n")
                 f.flush()
 
 
